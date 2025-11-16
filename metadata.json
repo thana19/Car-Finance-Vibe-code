@@ -1,0 +1,5 @@
+{
+  "name": "Car Finance Calculator with AI Search",
+  "description": "A React application to calculate car financing installments. It features an AI-powered search to find car prices by model, providing a seamless user experience. All UI text is in Thai.",
+  "requestFramePermissions": []
+}
