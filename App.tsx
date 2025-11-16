@@ -7,6 +7,7 @@ import CalculatorIcon from './components/icons/CalculatorIcon';
 import CarResultCard from './components/CarResultCard';
 import HistoryIcon from './components/icons/HistoryIcon';
 import ShareIcon from './components/icons/ShareIcon';
+import ResetIcon from './components/icons/ResetIcon';
 
 const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -213,6 +214,16 @@ const App: React.FC = () => {
   
   const handleInterestRateChange = (value: string) => {
     setInterestRate(value);
+    resetCalculationResults();
+  };
+  
+  const handleReset = () => {
+    setCarPrice('');
+    setCarModel('');
+    setDownPayment('');
+    setDownPaymentPercent('25');
+    setInterestRate('5');
+    setLoanTerm(5);
     resetCalculationResults();
   };
 
@@ -432,9 +443,19 @@ const App: React.FC = () => {
                             </div>
                         </div>
 
-                        <Button onClick={handleCalculateClick} className="w-full text-lg py-3">
-                            คำนวณค่างวด
-                        </Button>
+                        <div className="flex flex-col sm:flex-row-reverse gap-4 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+                             <Button onClick={handleCalculateClick} className="w-full sm:w-auto flex-grow text-lg py-3">
+                                คำนวณค่างวด
+                            </Button>
+                             <Button 
+                                onClick={handleReset} 
+                                type="button" 
+                                className="w-full sm:w-auto bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 flex items-center justify-center gap-2"
+                            >
+                                <ResetIcon className="w-5 h-5" />
+                                ล้างข้อมูล
+                            </Button>
+                        </div>
                     </div>
                 </Card>
             </div>
