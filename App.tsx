@@ -16,6 +16,7 @@ const App: React.FC = () => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   const [carPrice, setCarPrice] = useState<string>('');
+  const [carModel, setCarModel] = useState<string>('');
   const [downPayment, setDownPayment] = useState<string>('');
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>('25');
   const [interestRate, setInterestRate] = useState<string>('5');
@@ -26,6 +27,7 @@ const App: React.FC = () => {
   const [totalPayment, setTotalPayment] = useState<number | null>(null);
   const [financedAmount, setFinancedAmount] = useState<number | null>(null);
   const [calculatedDownPayment, setCalculatedDownPayment] = useState<number | null>(null);
+  const [calculatedCarModel, setCalculatedCarModel] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
 
 
@@ -54,6 +56,7 @@ const App: React.FC = () => {
     setTotalPayment(null);
     setFinancedAmount(null);
     setCalculatedDownPayment(null);
+    setCalculatedCarModel(null);
     setShareStatus(null);
   }, []);
 
@@ -95,14 +98,17 @@ const App: React.FC = () => {
     handleSearch(query);
   };
 
-  const handleCarSelect = useCallback((price: number) => {
-    const priceStr = price.toString();
+  const handleCarSelect = useCallback((car: CarInfo) => {
+    const priceStr = car.price.toString();
+    const fullModelName = `${car.brand} ${car.model} ${car.trim}`.trim();
+    
     setCarPrice(priceStr);
+    setCarModel(fullModelName);
     resetCalculationResults();
     
     const percent = parseFloat(downPaymentPercent);
     if (!isNaN(percent) && percent >= 0) {
-        const amount = (price * percent) / 100;
+        const amount = (car.price * percent) / 100;
         setDownPayment(amount.toFixed(0));
     }
 
@@ -132,6 +138,8 @@ const App: React.FC = () => {
     const monthlyInterestRate = interest / 100 / 12;
     const numberOfMonths = loanTerm * 12;
 
+    setCalculatedCarModel(carModel);
+
     if (monthlyInterestRate === 0) {
         const installment = principal / numberOfMonths;
         setMonthlyInstallment(installment);
@@ -153,7 +161,7 @@ const App: React.FC = () => {
         setFinancedAmount(principal);
         setCalculatedDownPayment(downPaymentAmount);
     }
-  }, [carPrice, downPaymentAmount, interestRate, loanTerm]);
+  }, [carPrice, carModel, downPaymentAmount, interestRate, loanTerm]);
   
   const handleCarPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const priceValue = e.target.value;
@@ -202,6 +210,11 @@ const App: React.FC = () => {
           setDownPayment('');
       }
   };
+  
+  const handleInterestRateChange = (value: string) => {
+    setInterestRate(value);
+    resetCalculationResults();
+  };
 
   const formatCurrency = (value: number | null, digits: number = 2) => {
     if (value === null) return '-';
@@ -216,6 +229,7 @@ const App: React.FC = () => {
 
     const summaryText = `
 ผลการคำนวณไฟแนนซ์รถยนต์:
+- รุ่นรถ: ${calculatedCarModel || 'ไม่ระบุ'}
 - ราคารถ: ${formatCurrency(parseFloat(carPrice), 0)} บาท
 - เงินดาวน์: ${formatCurrency(calculatedDownPayment, 0)} บาท
 - ยอดจัดไฟแนนซ์: ${formatCurrency(financedAmount, 0)} บาท
@@ -330,6 +344,11 @@ const App: React.FC = () => {
                             <input id="car-price" type="number" placeholder="0.00" value={carPrice} onChange={handleCarPriceChange} className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
                         </div>
 
+                         <div>
+                            <label htmlFor="car-model" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">รุ่นรถยนต์</label>
+                            <input id="car-model" type="text" placeholder="เช่น Toyota Yaris Ativ" value={carModel} onChange={(e) => {setCarModel(e.target.value); resetCalculationResults();}} className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">เงินดาวน์</label>
                             <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4">
@@ -362,8 +381,44 @@ const App: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="interest-rate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">อัตราดอกเบี้ยต่อปี (%)</label>
-                            <input id="interest-rate" type="number" placeholder="5.0" value={interestRate} onChange={e => {setInterestRate(e.target.value); resetCalculationResults();}} step="0.01" className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">อัตราดอกเบี้ยต่อปี</label>
+                             <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4">
+                                <div>
+                                     <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">ปรับด้วยแถบเลื่อน</span>
+                                        <span className="px-3 py-1 text-sm font-bold text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/50 rounded-full">
+                                            {parseFloat(interestRate || '0').toFixed(2)}%
+                                        </span>
+                                    </div>
+                                    <input
+                                        id="interest-rate-slider"
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        step="0.01"
+                                        value={interestRate || '0'}
+                                        onChange={(e) => handleInterestRateChange(e.target.value)}
+                                        className="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <label htmlFor="interest-rate-input" className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">กรอกตัวเลข</label>
+                                    <div className="relative">
+                                        <input
+                                            id="interest-rate-input"
+                                            type="number"
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            max="10"
+                                            value={interestRate}
+                                            onChange={(e) => handleInterestRateChange(e.target.value)}
+                                            className="w-full pl-4 pr-12 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                        />
+                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 dark:text-gray-400 pointer-events-none">%</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
@@ -397,6 +452,12 @@ const App: React.FC = () => {
                         </div>
                         
                         <div className="space-y-4 text-lg">
+                            {calculatedCarModel && (
+                               <div className="flex justify-between">
+                                    <span className="opacity-80">รุ่นรถ:</span>
+                                    <span className="font-semibold text-right">{calculatedCarModel}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <span className="opacity-80">ราคารถ:</span>
                                 <span>{formatCurrency(monthlyInstallment !== null && carPrice ? parseFloat(carPrice) : null, 0)}</span>
@@ -411,7 +472,7 @@ const App: React.FC = () => {
                             </div>
                             <div className="flex justify-between">
                                 <span className="opacity-80">อัตราดอกเบี้ย:</span>
-                                <span>{interestRate}% ต่อปี</span>
+                                <span>{parseFloat(interestRate).toFixed(2)}% ต่อปี</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="opacity-80">ระยะเวลาผ่อนชำระ:</span>
