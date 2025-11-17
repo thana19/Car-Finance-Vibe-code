@@ -8,6 +8,7 @@ import CarResultCard from './components/CarResultCard';
 import HistoryIcon from './components/icons/HistoryIcon';
 import ShareIcon from './components/icons/ShareIcon';
 import ResetIcon from './components/icons/ResetIcon';
+import ChevronDownIcon from './components/icons/ChevronDownIcon';
 
 const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -15,6 +16,7 @@ const App: React.FC = () => {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<CarInfo[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const [carPrice, setCarPrice] = useState<string>('');
   const [carModel, setCarModel] = useState<string>('');
@@ -114,6 +116,7 @@ const App: React.FC = () => {
     }
 
     setSearchResults([]);
+    setIsSearchVisible(false);
     const calculatorElement = document.getElementById('calculator-section');
     calculatorElement?.scrollIntoView({ behavior: 'smooth' });
   }, [downPaymentPercent, resetCalculationResults]);
@@ -284,49 +287,65 @@ const App: React.FC = () => {
         </header>
 
         <Card>
-          <div className="space-y-4">
+           <button
+            onClick={() => setIsSearchVisible(!isSearchVisible)}
+            className="w-full flex justify-between items-center text-left"
+            aria-expanded={isSearchVisible}
+            aria-controls="search-content"
+          >
             <h2 className="text-2xl font-semibold flex items-center gap-2">
               <SearchIcon className="w-7 h-7 text-blue-500" />
               ค้นหาราคารถด้วย AI
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              ไม่แน่ใจราคารถ? พิมพ์ชื่อรุ่นรถ (เช่น "Toyota Yaris Ativ") แล้วให้ AI ช่วยค้นหาราคาประเมินให้คุณ
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                placeholder="เช่น Toyota Camry, Honda Civic"
-                className="flex-grow w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-              />
-              <Button onClick={() => handleSearch(searchQuery)} disabled={isSearching} className="w-full sm:w-auto">
-                {isSearching ? 'กำลังค้นหา...' : 'ค้นหา'}
-              </Button>
-            </div>
-            {searchError && <p className="text-red-500 mt-2">{searchError}</p>}
-            
-            {recentSearches.length > 0 && !isSearching && (
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 flex items-center gap-2 mb-2">
-                  <HistoryIcon className="w-5 h-5" />
-                  การค้นหาล่าสุด
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {recentSearches.map((query) => (
-                    <button
-                      key={query}
-                      onClick={() => handleRecentSearchClick(query)}
-                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-                      aria-label={`Search for ${query}`}
-                    >
-                      {query}
-                    </button>
-                  ))}
+            <ChevronDownIcon className={`w-6 h-6 text-gray-500 dark:text-gray-400 transform transition-transform duration-300 ${isSearchVisible ? 'rotate-180' : ''}`} />
+          </button>
+          
+          <div
+            id="search-content"
+            className={`transition-all duration-500 ease-in-out overflow-hidden ${isSearchVisible ? 'max-h-[40rem]' : 'max-h-0'}`}
+          >
+            <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      ไม่แน่ใจราคารถ? พิมพ์ชื่อรุ่นรถ (เช่น "Toyota Yaris Ativ") แล้วให้ AI ช่วยค้นหาราคาประเมินให้คุณ
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
+                        placeholder="เช่น Toyota Camry, Honda Civic"
+                        className="flex-grow w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                      />
+                      <Button onClick={() => handleSearch(searchQuery)} disabled={isSearching} className="w-full sm:w-auto">
+                        {isSearching ? 'กำลังค้นหา...' : 'ค้นหา'}
+                      </Button>
+                    </div>
+                    {searchError && <p className="text-red-500 mt-2">{searchError}</p>}
+                    
+                    {recentSearches.length > 0 && !isSearching && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 flex items-center gap-2 mb-2">
+                          <HistoryIcon className="w-5 h-5" />
+                          การค้นหาล่าสุด
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {recentSearches.map((query) => (
+                            <button
+                              key={query}
+                              onClick={() => handleRecentSearchClick(query)}
+                              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-sm rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                              aria-label={`Search for ${query}`}
+                            >
+                              {query}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
-              </div>
-            )}
+            </div>
           </div>
         </Card>
 
